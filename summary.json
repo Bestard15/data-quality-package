@@ -1,0 +1,10 @@
+{
+  "dimensions": {
+    "completitud": 0.85,
+    "duplicados": 0.90,
+    "consistencia": 0.75,
+    "outliers": 1.0
+  },
+  "score_global": 0.875,
+  "semaforo": "VERDE"
+}

@@ -1,0 +1,24 @@
+rules:
+  - name: id_not_null
+    column: id
+    type: not_null
+
+  - name: id_unique
+    column: id
+    type: unique
+
+  - name: age_range
+    column: edad
+    type: range
+    min: 18
+    max: 99
+
+  - name: score_range
+    column: score
+    type: range
+    min: 0
+    max: 1
+
+  - name: no_empty_string
+    column: any
+    type: non_empty_string

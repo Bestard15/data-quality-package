@@ -1,0 +1,7 @@
+click
+pandas
+jinja2
+PyYAML
+scipy
+requests
+prefect        # si quieres orquestar con Prefect dentro del contenedor

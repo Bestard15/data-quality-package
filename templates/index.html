@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Semáforo de Fiabilidad</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .semaforo { font-size: 120px; text-align: center; }
+    .verde  { color: #28a745; }   /* verde */
+    .ambar  { color: #ffc107; }   /* amarillo */
+    .rojo   { color: #dc3545; }   /* rojo */
+    .bar { background: #ddd; border-radius: 5px; overflow: hidden; margin: 10px 0; }
+    .bar-fill { height: 20px; }
+  </style>
+</head>
+<body>
+  <h1>Semáforo de Fiabilidad</h1>
+  <div class="semaforo {{ semaforo_lower }}">{{ semaforo_symbol }}</div>
+  <h2>Puntaje Global: {{ score_global * 100 }}%</h2>
+  <h3>Dimensiones</h3>
+  {% for dim, val in dimensions.items() %}
+    <div><strong>{{ dim.capitalize() }}:</strong> {{ (val * 100)|round(1) }}%</div>
+    <div class="bar">
+      <div class="bar-fill" style="width: {{ val * 100 }}%; background-color: {{ colors[dim] }};"></div>
+    </div>
+  {% endfor %}
+</body>
+</html>

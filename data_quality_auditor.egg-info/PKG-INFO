@@ -1,0 +1,13 @@
+Metadata-Version: 2.4
+Name: data_quality_auditor
+Version: 0.1.0
+Summary: Auditor automático de calidad de datos
+Author: Juan
+Author-email: tu.email@updata.link
+Requires-Dist: pandas
+Requires-Dist: PyYAML
+Requires-Dist: click
+Dynamic: author
+Dynamic: author-email
+Dynamic: requires-dist
+Dynamic: summary

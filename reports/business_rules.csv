@@ -1,0 +1,8 @@
+rule,column,success,observed
+id_not_null,id,True,0 nulls
+id_unique,id,True,0 duplicates
+age_range,edad,True,"0<18, 0>99"
+score_range,score,True,"0<0, 0>1"
+no_empty_string,id,True,0 empty
+no_empty_string,edad,True,0 empty
+no_empty_string,score,True,0 empty
