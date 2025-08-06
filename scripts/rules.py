@@ -1,3 +1,4 @@
+import os
 import yaml
 import pandas as pd
 
@@ -43,3 +44,21 @@ def apply_business_rules(df: pd.DataFrame, rules) -> pd.DataFrame:
                 'observed': obs
             })
     return pd.DataFrame(records)
+
+def infer_schema(schema_path: str) -> dict:
+    """
+    Carga schema.yml y devuelve un dict con las reglas:
+    {
+      'edad': {'type':'integer','range':[18,99], ...},
+      ...
+    }
+    """
+    if not os.path.exists(schema_path):
+        raise FileNotFoundError(f"Esquema no encontrado: {schema_path}")
+    with open(schema_path, 'r', encoding='utf-8') as f:
+        content = yaml.safe_load(f)
+    schema = content.get('columns')
+    if not isinstance(schema, dict):
+        raise ValueError("schema.yml debe tener sección 'columns'")
+    return schema
+

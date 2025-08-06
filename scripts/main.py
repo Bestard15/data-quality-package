@@ -1,67 +1,83 @@
 import os
 import click
-import pandas as pd
-
 from scripts.load import load_data
-from scripts.metrics import compute_quality_metrics
-from scripts.rules import load_rules, apply_business_rules
-from scripts.io_utils import save_csv, save_json
-from scripts.score import compute_dimensions, compute_overall_score
-from scripts.render_report import render_html
+from scripts.rules import infer_schema
+from scripts.metrics import (
+    compute_quality_metrics,
+    compute_statistical_profile,
+    validate_patterns,
+    validate_referential_integrity,
+    compute_drift,
+    generate_diagnostics
+)
+from scripts.io_utils import save_csv, save_json, archive_reports
 
 @click.command()
-@click.option('--input',  'input_csv',  required=True, help='Ruta al CSV de datos')
-@click.option('--rules',  'rules_yml',  required=True, help='Ruta a rules.yml')
-@click.option('--outdir','outdir',      default='reports', help='Carpeta de salida')
-def main(input_csv, rules_yml, outdir):
-    # 1. Carga datos
+@click.option('--input',    'input_csv',  required=True, help='Ruta al CSV de datos')
+@click.option('--rules',    'rules_yml',  required=True, help='Ruta a schema.yml o rules.yml')
+@click.option('--outdir',   'outdir',     default='reports', help='Carpeta de salida')
+@click.option('--parent',   'parent_csv', default=None,    help='(Opcional) CSV de tabla padre para integridad referencial')
+@click.option('--key-child','key_child', default=None,    help='Nombre columna en child para integridad')
+@click.option('--key-parent','key_parent',default=None,    help='Nombre columna en parent para integridad')
+@click.option('--drift-th', 'drift_th',  default=0.2,      help='Umbral JS para drift', type=float)
+def main(input_csv, rules_yml, outdir, parent_csv, key_child, key_parent, drift_th):
+    os.makedirs(outdir, exist_ok=True)
+
+    # 1. Carga datos y esquema
     df = load_data(input_csv)
+    schema = infer_schema(rules_yml)
 
-    # 2. Métricas básicas
-    mdf = compute_quality_metrics(df)
-    save_csv(mdf, os.path.join(outdir, 'quality_metrics.csv'))
+    # 2. Métricas de calidad
+    qm = compute_quality_metrics(df, schema)
+    save_csv(qm, os.path.join(outdir, 'quality_metrics.csv'))
 
-    # 3. Carga reglas y aplica
-    rules = load_rules(rules_yml)
-    rdf = apply_business_rules(df, rules)
-    save_csv(rdf, os.path.join(outdir, 'business_rules.csv'))
+    # 3. Perfil estadístico
+    sp = compute_statistical_profile(df)
+    save_csv(sp, os.path.join(outdir, 'statistical_profile.csv'))
 
-    # 4. Detecta outliers si existe el módulo
-    try:
-        from scripts.outliers import detect_outliers
-        odf = detect_outliers(df)
-    except ImportError:
-        odf = None
+    # 4. Validación de patrones
+    pt = validate_patterns(df, schema)
+    save_csv(pt, os.path.join(outdir, 'pattern_validation.csv'))
 
-    # 5. Calcula dimensiones y score global
-    dims = compute_dimensions(mdf, rdf, odf)
-    score = compute_overall_score(dims)
+    # 5. Integridad referencial (si se proporcionan parent y claves)
+    ri = None
+    if parent_csv and key_child and key_parent:
+        parent_df = load_data(parent_csv)
+        ri = validate_referential_integrity(df, parent_df, key_child, key_parent)
+        save_csv(ri, os.path.join(outdir, 'referential_integrity.csv'))
 
-    # 6. Determina semáforo
-    if score >= 0.85:
+    # 6. Detección de drift
+    drift = compute_drift(df, hist_dir=os.path.join(outdir, 'histograms'), threshold=drift_th)
+    save_json(drift, os.path.join(outdir, 'drift_report.json'))
+
+    # 7. Generar diagnósticos
+    diag = generate_diagnostics(df, schema, drift_report=drift,
+                                parent_df=parent_df if ri is not None else None,
+                                key_child=key_child, key_parent=key_parent)
+    save_csv(diag, os.path.join(outdir, 'diagnostics.csv'))
+
+    # 8. Archivo summary con score y semáforo
+    # Ejemplo simple: semáforo verde si <5% nulls global, ámbar si <10%, rojo si más
+    global_null = qm['pct_nulls'].mean()
+    if global_null < 5:
         semaforo = 'VERDE'
-    elif score >= 0.70:
+    elif global_null < 10:
         semaforo = 'AMBAR'
     else:
         semaforo = 'ROJO'
-
-    # 7. Exporta summary.json
     summary = {
-        'dimensions': dims,
-        'score_global': score,
+        'overall_null_rate': round(global_null, 2),
         'semaforo': semaforo
     }
     save_json(summary, os.path.join(outdir, 'summary.json'))
 
-    # 8. Renderiza página HTML con semáforo
-    render_html(
-        json_path=os.path.join(outdir, 'summary.json'),
-        template_dir=os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir, 'templates')),
-        output_path=os.path.join(outdir, 'index.html')
-    )
+    # 9. Archivado histórico
+    archive_path = archive_reports(src_reports=outdir, archive_root=os.path.join(outdir, 'archive'))
+    click.echo(f"🔖 Reports archived to: {archive_path}")
 
-    # 9. Mensaje final
-    click.echo(f"✅ Reportes generados en {outdir}/ (Score: {score}, Semáforo: {semaforo})")
+    # 10. Mensaje final
+    click.echo(f"✅ Reportes generados en {outdir}/ (NullRate: {global_null}%, Semáforo: {semaforo})")
 
 if __name__ == '__main__':
     main()
+
