@@ -1,0 +1,5 @@
+outs:
+- md5: 3a79ca8c7614717a9107cde5efcbc5af
+  size: 302
+  hash: md5
+  path: schema.yml

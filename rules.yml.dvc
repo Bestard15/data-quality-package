@@ -1,0 +1,5 @@
+outs:
+- md5: 44065bcd43bd5a63a772804e63282651
+  size: 367
+  hash: md5
+  path: rules.yml

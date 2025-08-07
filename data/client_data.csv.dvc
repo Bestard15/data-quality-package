@@ -1,0 +1,5 @@
+outs:
+- md5: 578c187947b2e034a0a1e7c4d8062a00
+  size: 45
+  hash: md5
+  path: client_data.csv
