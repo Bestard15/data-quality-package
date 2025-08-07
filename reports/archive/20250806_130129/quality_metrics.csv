@@ -1,4 +1,0 @@
-column,n_nulls,pct_nulls,n_duplicates,pct_duplicates,n_type_mismatch,pct_type_mismatch,n_pattern_mismatch,pct_pattern_mismatch
-id,0,0.0,0,0.0,0,0.0,0,0.0
-edad,0,0.0,0,0.0,0,0.0,0,0.0
-score,0,0.0,0,0.0,0,0.0,0,0.0
