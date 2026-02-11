@@ -130,5 +130,5 @@ This project is open source and available for educational and professional use.
 
 ## 👤 Author
 
-**Juan Bestard** — [LinkedIn](www.linkedin.com/in/juan-bestard-barrio-74ba60269) · [GitHub](https://github.com/Bestard15)
+**Juan Bestard** — [LinkedIn](https://www.linkedin.com/in/juan-bestard-barrio-74ba60269) · [GitHub](https://github.com/Bestard15)
 
